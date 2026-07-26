@@ -10,7 +10,6 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "steam_games")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 TABLE_NAME = os.getenv("TABLE_NAME", "games")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE = os.getenv("LOG_FILE", "logs/etl.log")
@@ -36,3 +35,9 @@ def validate_config():
     missing = [name for name, value in required.items() if not value]
     if missing:
         raise ValueError(f"Не заданы переменные окружения! Пересмотри .env")
+
+
+def get_db_url():
+    validate_config()
+    return f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
