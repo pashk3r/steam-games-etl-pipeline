@@ -7,11 +7,11 @@ from src.exceptions import TransformationError
 logger = logging.getLogger(__name__)
 
 REVIEW_PATTERN = re.compile(
-    r"^(?P<summary>[^,]+),\((?P<count>[\d,]+)\),(?:\*,)?-\s\*(?P<positive_pct>\d+)%"
+    r"^(?P<summary>[^,]+),\((?P<count>[\d,]+)\).*?(?P<positive_pct>\d+)%"
 )
 
 INSUFFICIENT_REVIEWS_PATTERN = re.compile(
-    r"^(?P<count>\d+) user reviews?,-\s\*Need more"
+    r"^(?P<count>\d+) user reviews?,-\s*Need more"
 )
 
 FREE_LABELS = {"free", "free to play", "play for free!"}
