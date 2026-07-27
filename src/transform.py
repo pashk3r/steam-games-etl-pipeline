@@ -23,7 +23,7 @@ def drop_invalid_types(df):
     removed = df["types"].isna().sum()
 
     if removed:
-        logger.warning("Удалено %d строк с пустым types", removed)
+        logger.info("Удалено %d строк с пустым types", removed)
 
     return df.dropna(subset=["types"])
 
