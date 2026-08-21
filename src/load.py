@@ -1,29 +1,41 @@
 import logging
-from sqlalchemy import create_engine
-from sqlalchemy.exc import SQLAlchemyError
 
-from src.config import TABLE_NAME, get_db_url
-from src.exceptions import LoadError
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import col, concat_ws
+from pyspark.sql.types import ArrayType
+
+from config import get_db_url
+from src.config import DB_USER, DB_PASSWORD, TABLE_NAME
+from src.exceptions import LoadException
 
 logger = logging.getLogger(__name__)
 
 
-def load(df):
-    if df.empty:
-        raise LoadError("Получен пустой DataFrame")
+def load(df: DataFrame):
+    if df.count() == 0:
+        raise LoadException("Получен пустой DataFrame")
 
-    logger.info("Подключение к PostgreSQL")
+    logger.info("Подготовка данных к загрузке в PostgreSQL")
+
+    for field in df.schema.fields:
+        if isinstance(field.dataType, ArrayType):
+            df = df.withColumn(field.name, concat_ws(",", col(field.name)))
+
+    logger.info("Загрузка данных в PostgreSQL через JDBC")
 
     try:
-        engine = create_engine(get_db_url())
-        df.to_sql(
-            name=TABLE_NAME,
-            con=engine,
-            if_exists="replace",
-            index=False
-        )
-    except SQLAlchemyError as e:
+        df \
+            .write \
+            .format("jdbc") \
+            .option("url", get_db_url()) \
+            .option("dbtable", TABLE_NAME) \
+            .option("user", DB_USER) \
+            .option("password", DB_PASSWORD) \
+            .option("driver", "org.postgresql.Driver") \
+            .mode("overwrite") \
+            .save()
+    except Exception as e:
         logger.exception("Не удалось загрузить данные в PostgreSQL")
-        raise LoadError("Не удалось загрузить данные в PostgreSQL") from e
+        raise LoadException("Не удалось загрузить данные в PostgreSQL") from e
 
-    logger.info("Успешно загружено %d строк в таблицу %s",len(df), TABLE_NAME)
+    logger.info(f"Успешно загружено {df.count()} строк в таблицу {TABLE_NAME}")

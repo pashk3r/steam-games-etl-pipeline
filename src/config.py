@@ -22,7 +22,7 @@ SPARK_MASTER = os.getenv("SPARK_MASTER", "local[*]")
 def setup_logging():
     logging.basicConfig(
         level=LOG_LEVEL,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(LOG_FILE, mode='w', encoding="utf-8"),
             logging.StreamHandler()
@@ -39,3 +39,7 @@ def validate_config():
     missing = [name for name, value in required.items() if not value]
     if missing:
         raise ValueError(f"Не заданы переменные окружения!")
+
+
+def get_db_url():
+    return f"jdbc:postgresql://{DB_HOST}:{DB_PORT}/{DB_NAME}"
