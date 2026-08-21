@@ -1,14 +1,14 @@
-class ETLError(Exception):
+class ETLException(Exception):
     """Базовое исключение ETL"""
 
 
-class ExtractionError(ETLError):
+class ExtractException(ETLException):
     """Ошибка извлечения"""
 
 
-class TransformationError(ETLError):
+class TransformException(ETLException):
     """Ошибка трансформации"""
 
 
-class LoadError(ETLError):
+class LoadException(ETLException):
     """Ошибка загрузки"""
