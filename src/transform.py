@@ -2,118 +2,133 @@ import logging
 
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import (
-    col,
-    when,
-    to_date,
-    lit,
-    regexp_extract,
-    regexp_replace,
-    split,
-    transform as spark_transform,
     array_remove,
-    lower,
+    col,
+    dayofmonth,
+    month,
+    split,
+    to_date,
     trim,
+    year,
+    translate,
+    transform as Transform,
 )
 
 from src.exceptions import TransformException
 
 logger = logging.getLogger(__name__)
 
-FREE_LABELS = ["free", "free to play", "play for free!"]
-LIST_COLUMNS = ["popular_tags", "game_details", "languages", "genre"]
-PRICE_COLUMNS = ["original_price", "discount_price"]
-REVIEW_COLUMNS = [("recent_reviews", "recent"), ("all_reviews", "all")]
+
+def drop_missing_name(df: DataFrame) -> DataFrame:
+    logger.info("Удаление строк у которых Name пустое")
+
+    try:
+        line_counter_before = df.count()
+        df = df.filter((col("Name").isNotNull()) & (trim(col("Name")) != ""))
+        line_counter_after = df.count()
+        line_count_deleted = line_counter_before - line_counter_after
+
+        logger.info(f"Удалено строк с пустым Name: {line_count_deleted}")
+        return df
+    except Exception as e:
+        logger.error(f"Ошибка при удалении строк с пустым Name: {e}")
+        raise TransformException(f"Не удалось удалить строки с пустым Name: {e}") from e
 
 
-def _clean_prices(df: DataFrame) -> DataFrame:
-    for price_col in PRICE_COLUMNS:
-        clean = trim(col(price_col))
-        df = df.withColumn(
-            price_col,
-            when(lower(clean).isin(FREE_LABELS), lit(0.0))
-            .when(
-                clean.startswith("$"), regexp_replace(clean, r"^\$", "").cast("double")
-            )
-            .otherwise(lit(None).cast("double")),
-        )
-    return df.withColumn("is_free", col("original_price") == 0.0)
+def split_release_date(df: DataFrame) -> DataFrame:
+    logger.info('Разбиение "Release date" на 3 колонки')
+
+    try:
+        df = df.withColumn("Release date", to_date(col("Release date"), "MMM d, yyyy"))
+        df = df.withColumn("Release day", dayofmonth(col("Release date")))
+        df = df.withColumn("Release month", month(col("Release date")))
+        df = df.withColumn("Release year", year(col("Release date")))
+        df = df.drop("Release date")
+
+        logger.info('Разбиение "Release date" произошло успешно')
+        return df
+    except Exception as e:
+        logger.error(f'Ошибка при разбиении "Release date": {e}')
+        raise TransformException(f'Не удалось разбить "Release date": {e}') from e
 
 
-def _parse_review_column(df: DataFrame, src_col: str, prefix: str) -> DataFrame:
-    src = col(src_col)
-    need_more = src.like("%Need more%")
+def split_estimated_owners(df: DataFrame) -> DataFrame:
+    logger.info('Разбиение "Estimated owners" на 2 колонки')
 
-    summary = when(need_more, lit("Insufficient reviews")).otherwise(
-        regexp_extract(src, r"^([^,]+)", 1)
-    )
-    count_expr = when(need_more, regexp_extract(src, r"^(\d+)", 1)).otherwise(
-        regexp_extract(src, r"\(([\d,]+)\)", 1)
-    )
+    try:
+        owners = split(col("Estimated owners"), " - ")
 
-    df = df.withColumn(
-        f"{prefix}_review_summary", when(summary == "", lit(None)).otherwise(summary)
-    )
-    df = df.withColumn(
-        f"{prefix}_review_count", regexp_replace(count_expr, ",", "").cast("int")
-    )
-    df = df.withColumn(
-        f"{prefix}_review_positive_pct",
-        when(need_more, lit(None).cast("int")).otherwise(
-            regexp_extract(src, r"(\d+)%", 1).cast("int")
-        ),
-    )
-    return df.drop(src_col)
+        df = df.withColumn("Estimated owners min", trim(owners.getItem(0)).cast("int"))
+        df = df.withColumn("Estimated owners max", trim(owners.getItem(1)).cast("int"))
+        df = df.drop("Estimated owners")
+
+        logger.info('Разбиение "Estimated owners" произошло успешно')
+        return df
+    except Exception as e:
+        logger.error(f'Ошибка при разбиении "Estimated owners": {e}')
+        raise TransformException(f'Не удалось разбить "Estimated owners": {e}') from e
 
 
-def _parse_reviews(df: DataFrame) -> DataFrame:
-    for src_col, prefix in REVIEW_COLUMNS:
-        df = _parse_review_column(df, src_col, prefix)
-    return df
+def string_to_array(df: DataFrame, column_name: str) -> DataFrame:
+    logger.info(f'Преобразование колонки "{column_name}" из строки в массив')
+
+    try:
+        df = df.withColumn(column_name, array_remove(Transform(split(col(column_name), ","), trim), ""))
+
+        logger.info(f'Успешное преобразование колонки "{column_name}" из строки в массив')
+        return df
+    except Exception as e:
+        logger.error(f'Ошибка при преобразовании колонки "{column_name}" в массив: {e}')
+        raise TransformException(f'Не удалось преобразовать колонку "{column_name}" в массив: {e}') from e
 
 
-def _parse_release_date(df: DataFrame) -> DataFrame:
-    return df.withColumn(
-        "release_date", to_date(trim(col("release_date")), "MMM d, yyyy")
-    )
+def list_string_to_array(df: DataFrame, column_name: str) -> DataFrame:
+    logger.info(f'Преобразование колонки "{column_name}" в массив')
+
+    try:
+        df = df.withColumn(column_name, translate(col(column_name), "[]'", ""))
+        df = df.withColumn(column_name, array_remove(Transform(split(col(column_name), ","), trim), ""))
+
+        logger.info(f'Колонка "{column_name}" успешно преобразована в массив')
+        return df
+    except Exception as e:
+        logger.error(f'Ошибка при преобразовании "{column_name}" в массив: {e}')
+        raise TransformException(f'Не удалось преобразовать "{column_name}" в массив: {e}') from e
 
 
-def _clean_list_columns(df: DataFrame) -> DataFrame:
-    for column in LIST_COLUMNS:
-        df = df.withColumn(
-            column,
-            array_remove(
-                spark_transform(split(col(column), ","), lambda x: trim(x)), ""
-            ),
-        )
-    return df
+def drop_column(df: DataFrame, column_name: str) -> DataFrame:
+    logger.info(f'Удаление "{column_name}"')
 
+    try:
+        df = df.drop(column_name)
 
-def _clean_achievements(df: DataFrame) -> DataFrame:
-    return df.withColumn("achievements", trim(col("achievements")).cast("int"))
-
-
-def _clean_mature_content(df: DataFrame) -> DataFrame:
-    return df.withColumn(
-        "mature_content",
-        when(col("mature_content").isNull(), lit("")).otherwise(col("mature_content")),
-    )
+        logger.info(f'Колонка "{column_name}" успешно удалена')
+        return df
+    except Exception as e:
+        logger.error(f'Ошибка при удалении "{column_name}": {e}')
+        raise TransformException(f'Не удалось удалить "{column_name}": {e}') from e
 
 
 def transform(df: DataFrame) -> DataFrame:
-    df = df.dropna(subset=["types"])
+    STRING_TO_ARRAY_COLUMNS = ["Screenshots", "Tags", "Genres", "Categories", "Developers", "Publishers"]
+    LIST_STRING_TO_ARRAY_COLUMNS = ["Supported languages", "Full audio languages"]
 
-    row_count = df.count()
-    if row_count == 0:
+    rows_count = df.count()
+    if rows_count == 0:
         raise TransformException("Получен пустой датафрейм")
 
-    logger.info(f"Начинаю трансформацию: {row_count} строк")
+    logger.info(f"Начинаю трансформацию: {rows_count} строк")
 
-    df = _clean_prices(df)
-    df = _parse_reviews(df)
-    df = _parse_release_date(df)
-    df = _clean_list_columns(df)
-    df = _clean_achievements(df)
-    df = _clean_mature_content(df)
+    df = drop_missing_name(df)
+    df = split_release_date(df)
+    df = split_estimated_owners(df)
+    df = drop_column(df, "Movies")
 
-    logger.info(f"Трансформация завершена: {row_count} строк")
+    for column in STRING_TO_ARRAY_COLUMNS:
+        df = string_to_array(df, column)
+
+    for column in LIST_STRING_TO_ARRAY_COLUMNS:
+        df = list_string_to_array(df, column)
+    
+    logger.info(f"Трансформация завершена: {rows_count} строк")
     return df
