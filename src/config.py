@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-CSV_FILE_PATH = os.getenv("CSV_FILE_PATH", "data/raw/steam_games.csv")
+CSV_FILE_PATH = os.getenv("CSV_FILE_PATH", "data/raw/games.csv")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "steam_games")

@@ -13,10 +13,10 @@ def extract(spark: SparkSession) -> DataFrame:
 
     try:
         df = spark \
-            .read \
-            .option("header", "true") \
-            .option("inferSchema", "true") \
-            .csv(CSV_FILE_PATH)
+                .read \
+                .option("header", "true") \
+                .option("inferSchema", "true") \
+                .csv(CSV_FILE_PATH)
     except FileNotFoundError as e:
         logger.error(f"CSV-файл не найден: {CSV_FILE_PATH}")
         raise ExtractException(f"CSV-файл не найден: {CSV_FILE_PATH}") from e
