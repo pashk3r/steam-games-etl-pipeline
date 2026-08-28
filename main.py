@@ -2,11 +2,11 @@ import logging
 
 from pyspark.sql import SparkSession
 
-from src.config import setup_logging, validate_config, SPARK_APP_NAME, SPARK_MASTER
+from src.config import SPARK_APP_NAME, SPARK_MASTER, setup_logging, validate_config
+from src.exceptions import ExtractException, LoadException, TransformException
 from src.extract import extract
-from src.transform import transform
 from src.load import load
-from src.exceptions import ExtractException, TransformException, LoadException
+from src.transform import transform
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +18,12 @@ def main():
     logger.info("Запуск пайплайна")
 
     spark = SparkSession \
-                    .builder \
-                    .appName(SPARK_APP_NAME) \
-                    .master(SPARK_MASTER) \
-                    .config("spark.jars.packages", "org.postgresql:postgresql:42.7.3") \
-                    .config("spark.sql.legacy.timeParserPolicy", "LEGACY") \
-                    .getOrCreate()
+                .builder \
+                .appName(SPARK_APP_NAME) \
+                .master(SPARK_MASTER) \
+                .config("spark.jars.packages", "org.postgresql:postgresql:42.7.3") \
+                .config("spark.sql.legacy.timeParserPolicy", "LEGACY") \
+                .getOrCreate()
 
     try:
         df = extract(spark)

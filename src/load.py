@@ -4,8 +4,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql.functions import col, concat_ws
 from pyspark.sql.types import ArrayType
 
-from config import get_db_url
-from src.config import DB_USER, DB_PASSWORD, TABLE_NAME
+from src.config import DB_PASSWORD, DB_USER, TABLE_NAME, get_db_url
 from src.exceptions import LoadException
 
 logger = logging.getLogger(__name__)

@@ -14,7 +14,6 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 TABLE_NAME = os.getenv("TABLE_NAME", "games")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE = os.getenv("LOG_FILE", "logs/etl.log")
-
 SPARK_APP_NAME = os.getenv("SPARK_APP_NAME", "SteamGamesETL")
 SPARK_MASTER = os.getenv("SPARK_MASTER", "local[*]")
 
@@ -38,7 +37,7 @@ def validate_config():
 
     missing = [name for name, value in required.items() if not value]
     if missing:
-        raise ValueError(f"Не заданы переменные окружения!")
+        raise ValueError("Не заданы переменные окружения!")
 
 
 def get_db_url():
