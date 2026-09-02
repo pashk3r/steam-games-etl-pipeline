@@ -33,7 +33,7 @@ ETL-пайплайн для извлечения, трансформации и 
 ```
 
 А так выглядит поток данных:
-![data_flow.png](https://private-user-images.githubusercontent.com/209692999/642854914-1b9e3a8a-0a77-4783-a577-44d50103c0ee.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODc5Mzg1NzIsIm5iZiI6MTc4NzkzODI3MiwicGF0aCI6Ii8yMDk2OTI5OTkvNjQyODU0OTE0LTFiOWUzYThhLTBhNzctNDc4My1hNTc3LTQ0ZDUwMTAzYzBlZS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwODI4JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDgyOFQxNzMxMTJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1mOGJhNjZlYWMzOTEyNjFjMGNhZmUyZjlkYmZmNmYwMjUxZWVkODQzYjI2ZDdmYmIyNDdkNzU0ZTRjY2Q4OGEyJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.GiB-p6_Z7635gKc-hrf3W_DnOqJGuHFOZXYo3U5e9xQ)
+![data_flow.png](https://private-user-images.githubusercontent.com/209692999/642854914-1b9e3a8a-0a77-4783-a577-44d50103c0ee.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODgzMzYyODEsIm5iZiI6MTc4ODMzNTk4MSwicGF0aCI6Ii8yMDk2OTI5OTkvNjQyODU0OTE0LTFiOWUzYThhLTBhNzctNDc4My1hNTc3LTQ0ZDUwMTAzYzBlZS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwOTAyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDkwMlQwNzU5NDFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT01NGVmZmJjNmZlOWNlZTcxZGM5MjE3ZWNiNDQ2ZmIyNTYyNTZhYzcyMWNjMTE0ZTgwZTNkYzZmNWZhZmUxNTgyJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.RG6d8roP50bZRaty93fQ1gDTeItlR5wyimIOr_9Tklw)
 
 ## **Используемые технологии**
 
@@ -73,7 +73,7 @@ steam-games-etl/
 - **Python 3.12**
 - **Java 17**
 - **PostgreSQL**
-- **Для запуска пайплайна файл `games.csv` нужно скачать с [Kaggle](https://www.kaggle.com/datasets/fronkongames/steam-games-dataset) и положить его по пути `data/raw/`. Также нужно поставить запятую между `Discount` и `DLC count` в первой строчке файла**
+- **Для запуска пайплайна файл `games.csv` нужно скачать с [Kaggle](https://www.kaggle.com/datasets/fronkongames/steam-games-dataset) и положить его по пути `data/raw/`)**
 
 ### **1. Клонирование репозитория**
 
@@ -88,7 +88,7 @@ cd steam-games-etl-pipeline
 python -m venv .venv
 .venv\Scripts\activate
 
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 
@@ -151,7 +151,7 @@ python main.py
 
 ## **TO-DO**
 
-- [x] Заменить pandas на Spark
+- [x] Заменить Pandas на PySpark
 
 
 ## **Автор**
