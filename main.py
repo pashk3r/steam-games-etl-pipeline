@@ -1,4 +1,5 @@
 import logging
+import os
 
 from pyspark.sql import SparkSession
 
@@ -14,6 +15,9 @@ logger = logging.getLogger(__name__)
 def main():
     setup_logging()
     validate_config()
+
+    os.environ["SPARK_LOCAL_IP"] = "127.0.0.1"
+    os.environ["SPARK_LOCAL_HOSTNAME"] = "localhost"
 
     logger.info("Запуск пайплайна")
 
